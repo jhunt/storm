@@ -2,6 +2,32 @@
 (ql:quickload :chirp)
 (use-package :cl-utilities)
 
+(defparameter *settings* (make-hash-table :test 'eq))
+(defparameter *settings-path* nil)
+(defun settings (path)
+  (setf *settings-path* path)
+  (setf *settings* (make-hash-table :test 'eq))
+  (if (probe-file *settings-path*)
+    (with-open-file (in *settings-path*)
+      (mapcar (lambda (v) (setf (gethash (car v) *settings*) (cdr v)))
+              (read in)))))
+
+(defun setting (key)
+  (gethash key *settings*))
+
+(defun (setf setting) (new-value key)
+  (setf (gethash key *settings*) new-value)
+  (if *settings-path*
+      (with-open-file (out *settings-path*
+                           :direction :output
+                           :if-does-not-exist :create
+                           :if-exists :overwrite)
+        (format out "~S~%"
+                (loop for k being each hash-key of *settings*
+                      using (hash-value v)
+                      collect (cons k v)))))
+  new-value)
+
 (defun cull/cdr (lst)
   "culls returns the first cdr of lst that doesn't start with nil"
   (cond ((null lst) nil)
