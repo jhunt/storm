@@ -1,4 +1,3 @@
 **
-!/storm.lisp
-!/swank.lisp
+!/*.lisp
 !/entrypoint.sh

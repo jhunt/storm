@@ -3,9 +3,10 @@
 (use-package :cl-utilities)
 
 (defparameter *settings* (make-hash-table :test 'eq))
-(defparameter *settings-path* nil)
-(defun settings (path)
-  (setf *settings-path* path)
+(defparameter *settings-path* #P"/etc/storm/settings")
+(defun settings (&optional path)
+  (if (not (null path))
+    (setf *settings-path* path))
   (setf *settings* (make-hash-table :test 'eq))
   (if (probe-file *settings-path*)
     (with-open-file (in *settings-path*)
@@ -27,6 +28,20 @@
                       using (hash-value v)
                       collect (cons k v)))))
   new-value)
+
+(defun save-chirp-auth (path)
+  (settings path)
+  (setf (setting 'api-key)       chirp:*oauth-api-key* )
+  (setf (setting 'api-secret)    chirp:*oauth-api-secret*)
+  (setf (setting 'access-token)  chirp:*oauth-access-token* )
+  (setf (setting 'access-secret) chirp:*oauth-access-secret*))
+
+(defun restore-chirp-auth (&optional path)
+  (settings path)
+  (setf chirp:*oauth-api-key*       (setting 'api-key))
+  (setf chirp:*oauth-api-secret*    (setting 'api-secret))
+  (setf chirp:*oauth-access-token*  (setting 'access-token))
+  (setf chirp:*oauth-access-secret* (setting 'access-secret)))
 
 (defun cull/cdr (lst)
   "culls returns the first cdr of lst that doesn't start with nil"
@@ -176,7 +191,7 @@
                     (naptime (seconds-to-type wpm status)))
                (nap naptime)
                (setf prev-status
-                     (dont-tweet-it status media prev-status))))))
+                     (tweet-it status media prev-status))))))
 
 
 ;(defun watch-demo (dir)
@@ -184,9 +199,9 @@
 ;                 (format t "... processing ~A...~%" file)
 ;                 (format t "---~%~A~%~%~%===~%" contents))))
 
-(defun watch-and-tweet ()
+(defun watch-and-tweet (&optional (dir "/tweets"))
   "main event loop - watch tweets/* for tweets and tweet them out"
-  (watch "tweets"
+  (watch dir
          #'(lambda (file tweet)
              (declare (ignore file))
              (tweetstorm tweet))))
