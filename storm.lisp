@@ -15,7 +15,7 @@
 
 (defun whats-up ()
   (format t "~d storms.~%" (stat 'storms))
-  (format t "~d tweets send.~%" (stat 'tweets))
+  (format t "~d tweets sent.~%" (stat 'tweets))
   (format t "~d media uploaded.~%" (stat 'media)))
 
 (defparameter *settings* (make-hash-table :test 'eq))
