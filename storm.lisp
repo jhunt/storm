@@ -2,6 +2,8 @@
 (ql:quickload :chirp)
 (use-package :cl-utilities)
 
+(defparameter *wpm* 17)
+
 (defparameter *stat* (make-hash-table :test 'eq))
 (defun stat (key)
   (multiple-value-bind (n ok)
@@ -200,7 +202,7 @@
   (format t "sleeping for ~ds...~%" n)
   (sleep 0))
 
-(defun tweetstorm (text &key (wpm 80))
+(defun tweetstorm (text &key (wpm *wpm*))
   "tweet out text, as a tweet storm, at the given wpm typing speed"
   (let ((prev-status nil))
     (loop for tweet in (storm text)
