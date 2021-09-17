@@ -104,7 +104,7 @@ localhost / loopback, and setting up an SSH tunnel to protect the
 Swank connection:
 
 ```sh
-james@prod # docker run -d -p 127.0.0.1:40050:4005 \
+james@prod $ docker run -d -p 127.0.0.1:40050:4005 \
                         iamjameshunt/storm
 
 james@laptop $ ssh -N james@prod -L 40050:127.0.0.1:40050
