@@ -2,7 +2,7 @@
 (ql:quickload :chirp)
 (use-package :cl-utilities)
 
-(defparameter *wpm* 17)
+(defparameter *wpm* 10)
 
 (defparameter *stat* (make-hash-table :test 'eq))
 (defun stat (key)
