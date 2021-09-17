@@ -2,6 +2,20 @@
 (ql:quickload :chirp)
 (use-package :cl-utilities)
 
+(defparameter *stat* (make-hash-table :test 'eq))
+(defun stat (key)
+  (multiple-value-bind (n ok)
+    (gethash key *stat*)
+    (if ok n 0)))
+
+(defun (setf stat) (new-value key)
+  (setf (gethash key *stat*) new-value))
+
+(defun whats-up ()
+  (format t "~d storms.~%" (stat 'storms))
+  (format t "~d tweets send.~%" (stat 'tweets))
+  (format t "~d media uploaded.~%" (stat 'media)))
+
 (defparameter *settings* (make-hash-table :test 'eq))
 (defparameter *settings-path* #P"/etc/storm/settings")
 (defun settings (&optional path)
@@ -171,7 +185,11 @@
 (defun tweet-it (status media reply-to)
   "tweet status updates, as a thread, with attached media (if any)"
   (format t "tweeting: ~A~%" status)
-  (if media (format t "... with attached media ~A~%" media))
+  (incf (stat 'tweets))
+  (if (not reply-to)
+      (incf (stat 'storms)))
+  (cond (media (format t "... with attached media ~A~%" media)
+               (incf (stat 'media))))
   (cond ((and media reply-to) (chirp:statuses/update-with-media status media :reply-to (chirp:id reply-to)))
         (media                (chirp:statuses/update-with-media status media))
         (reply-to             (chirp:statuses/update status :reply-to (chirp:id reply-to)))
@@ -192,12 +210,6 @@
                (nap naptime)
                (setf prev-status
                      (tweet-it status media prev-status))))))
-
-
-;(defun watch-demo (dir)
-;  (watch dir #'(lambda (file contents)
-;                 (format t "... processing ~A...~%" file)
-;                 (format t "---~%~A~%~%~%===~%" contents))))
 
 (defun watch-and-tweet (&optional (dir "/tweets"))
   "main event loop - watch tweets/* for tweets and tweet them out"
