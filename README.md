@@ -13,6 +13,41 @@ want to send tweets as.
 [chirp]: https://github.com/Shinmera/chirp
 
 
+Storm In Action
+---------------
+
+Let's say you wanted to tweet out part 1 of _Rime of the Ancient
+Mariner_.  You could start with a plaintext file that looks
+[a bit like this][rime]:
+
+[rime]: examples/rime-of-the-ancient-mariner.tweet
+
+```
+It is an ancient Mariner,
+And he stoppeth one of three.
+'By thy long grey beard and glittering eye,
+Now wherefore stopp'st thou me?
+
+The Bridegroom's doors are opened wide,
+And I am next of kin;
+The guests are met, the feast is set:
+May'st hear the merry din.'
+
+He holds him with his skinny hand,
+'There was a ship,' quoth he.
+'Hold off! unhand me, grey-beard loon!'
+Eftsoons his hand dropt he.
+```
+
+and Storm will tweet that out, a few tweets a minute, like this:
+
+![Screenshot of a thread, on Twitter](docs/rime-of-the-ancient-mariner.png)
+
+(Here's the [original thread, on Twitter][nl], for posterity)
+
+[nl]: https://twitter.com/niftylogic/status/1438697077177999366
+
+
 Running Storm
 -------------
 
