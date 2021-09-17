@@ -90,7 +90,7 @@ or, by Swank (via Emacs SLIME, or some other route) to connect to
 the live REPL (read-eval-print loop) running inside of the
 container.
 
-(emacs gif)
+![Connecting to Storm via Emacs+SLIME](docs/storm-repl-emacs.gif)
 
 For this to work, you need to be forwarding the container's
 TCP/4005 port to something reachable.  For local dev, this works:
