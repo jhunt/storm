@@ -200,7 +200,7 @@
 (defun nap (n)
   "loudly take a nap for n seconds"
   (format t "sleeping for ~ds...~%" n)
-  (sleep 0))
+  (sleep n))
 
 (defun tweetstorm (text &key (wpm *wpm*))
   "tweet out text, as a tweet storm, at the given wpm typing speed"
