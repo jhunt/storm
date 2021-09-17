@@ -95,4 +95,64 @@ CL-USER> (save-chirp-auth)
 From then on (assuming the `/etc/storm` directory persists across
 container restarts) everything should **Just Work**(TM).
 
+
+Fun Things You Can Do In The REPL
+---------------------------------
+
+Connecting remotely to the live console of the SBCL REPL unlocks a
+whole extra mode of dealing with a running application that you
+may not be altogether familiar with or comfortable with.  I know I
+wasn't at first.
+
+Here's some ideas of what you can do.  These code listings all
+assume you are connected (securely!) to your storm instance.
+
+### Tune Your Words-per-Minute Speed
+
+If Storm is tweeting out too quickly or too slowly, you can easily
+adjust things by setting the `*wpm*` (dynamic) variable.
+
+To speed things up:
+
+```lisp
+CL-USER> (setf *wpm* 80)
+```
+
+or, to slow them down:
+
+```lisp
+CL-USER> (setf *wpm* 5)
+```
+
+When you're connected to the REPL, you are actually _inside_ the
+execution- and memory-space of the storm instance.  Changing
+variables in the REPL affects the full machinery of storm, and
+your changes **will** persist after your Swank client disconnects!
+
+### See What's Going On (Stats!)
+
+Storm defines a few functions made explicitly for use in the REPL.
+`WHATS-UP` is one of those.  It shows you current stats:
+
+```lisp
+CL-USER> (whats-up)
+4 storms.
+39 tweets sent.
+6 media uploaded.
+```
+
+These update in real-time, as storm sends out tweets and images.
+
+
+### Send a Tweet, Off the Cuff
+
+Don't have access to the `/tweets` directory in the container (or
+whatever you mapped it to outside the container)?  No problem!
+
+The `TWEET` function does what you'd think.  It sends a tweet.
+
+```lisp
+CL-USER> (tweet "Is this thing on?")
+```
+
 [img]: https://hub.docker.com/r/iamjameshunt/storm
