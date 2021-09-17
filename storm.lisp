@@ -97,7 +97,6 @@
 (defun watch (dir handler)
   "watch a directory for tweet files, and fire handler for each such file found"
   (loop
-    (format t "sleeping for 1s~%")
     (sleep 1)
     (loop for file in (tweet-files dir)
           do
