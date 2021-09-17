@@ -201,12 +201,12 @@
   (format t "sleeping for ~ds...~%" n)
   (sleep n))
 
-(defun tweetstorm (text &key (wpm *wpm*))
+(defun tweet (text &key (wpm *wpm*))
   "tweet out text, as a tweet storm, at the given wpm typing speed"
   (let ((prev-status nil))
-    (loop for tweet in (storm text)
-          do (let* ((status  (car tweet))
-                    (media   (cdr tweet))
+    (loop for the-tweet in (storm text)
+          do (let* ((status  (car the-tweet))
+                    (media   (cdr the-tweet))
                     (naptime (seconds-to-type wpm status)))
                (nap naptime)
                (setf prev-status
@@ -215,6 +215,6 @@
 (defun watch-and-tweet (&optional (dir "/tweets"))
   "main event loop - watch tweets/* for tweets and tweet them out"
   (watch dir
-         #'(lambda (file tweet)
+         #'(lambda (file the-tweet)
              (declare (ignore file))
-             (tweetstorm tweet))))
+             (tweet the-tweet))))
