@@ -1,6 +1,7 @@
 (ql:quickload :cl-utilities)
 (ql:quickload :chirp)
 (use-package :cl-utilities)
+(load "image.lisp")
 
 (defparameter *wpm* 10)
 
@@ -86,22 +87,53 @@
   "find and return list of pathnames of files that contain tweets"
   (directory (format nil "~A/*.tweet" in-dir)))
 
-(defun read-file (path)
-  "read all of a tweet file into memory, replacing newlines with spaces"
-  (with-open-file (in path)
-    (format nil "~{~A ~}"
-            (loop for line = (read-line in nil)
-                  while line
-                  collect line))))
+(defparameter *lisp-n* 1)
+(defun stow-image (dir text)
+  (let ((path (format nil "~A/lisp~D.png" dir *lisp-n*))
+        (font (format nil "~A/mono.ttf" dir)))
+    (incf *lisp-n*)
+    (image::lispify path text :font font)
+    path))
+(defun process-lisp-listing (lines images &optional acc)
+  (cond ((null lines)
+         (values nil nil))
+       ((equal (car lines) "---")
+         (values (reverse acc)
+                 (cdr lines)))
+        (t
+         (process-lisp-listing (cdr lines)
+                               images
+                               (cons (car lines) acc)))))
+(defun process-raw-tweet (lines images)
+  (format t "~{|~A|~%~}" lines)
+  (cond ((null lines) nil)
+        ((equal (car lines) "---(lisp)")
+         (multiple-value-bind (img rest-of-tweet)
+           (process-lisp-listing (cdr lines) images)
+           (cons (format nil "<~A>" (stow-image images img))
+                 (process-raw-tweet rest-of-tweet images))))
+        (t (cons (car lines)
+                 (process-raw-tweet (cdr lines) images)))))
 
-(defun watch (dir handler)
+(defun read-file-as-lines (path)
+  (with-open-file (in path)
+    (loop for line = (read-line in nil)
+          while line
+          collect line)))
+
+(defun parse-tweet (path images)
+  (let ((lines (read-file-as-lines path)))
+    (format nil "~{~A~^ ~}"
+            (process-raw-tweet lines images))))
+
+(defun watch (dir images handler)
   "watch a directory for tweet files, and fire handler for each such file found"
   (loop
     (sleep 1)
     (loop for file in (tweet-files dir)
           do
           (progn
-            (apply handler (list file (read-file file)))
+            (apply handler (list file (parse-tweet file images)))
             (delete-file file)))))
 
 
@@ -212,9 +244,9 @@
                (setf prev-status
                      (tweet-it status media prev-status))))))
 
-(defun watch-and-tweet (&optional (dir "/tweets"))
+(defun watch-and-tweet (&optional (dir "/tweets") (images "/img"))
   "main event loop - watch tweets/* for tweets and tweet them out"
-  (watch dir
+  (watch dir images
          #'(lambda (file the-tweet)
              (declare (ignore file))
              (tweet the-tweet))))

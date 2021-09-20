@@ -18,6 +18,7 @@ COPY *.lisp /opt/lisp/
 COPY entrypoint.sh /usr/bin/entrypoint
 
 ENTRYPOINT ["/usr/bin/entrypoint"]
+WORKDIR /opt/lisp
 CMD ["--load", "/opt/lisp/storm.lisp", "--script", "/opt/lisp/init.lisp"]
 
 EXPOSE 4005

@@ -1,0 +1,22 @@
+Hello, and welcome to my thread, the Joys of Lisping.
+#lisp
+
+There's going to be a fair number of Lisp code snippets (all ANSI Common Lisp) all of which will be formatted like this:
+---(lisp)
+(defun hello (world)
+ (format t "Hello, ~A~%" world))
+---
+
+Full source code for this thread can be found on my website, https://jameshunt.us
+#accessibility #lisp
+
+Alright, now what's so great about lisp? Why, those parentheses of course! I hear you asking "why oh WHY can't I get a language that has traded in ALL OTHER punctuation for ( and )?!"
+
+Have no fear. Lisp is here.
+---(lisp)
+(defun fac (n)
+  (cond ((eq n 0) 1)
+        (t (* (n (fac (- n 1)))))))
+---
+
+So many glorious parentheses.
