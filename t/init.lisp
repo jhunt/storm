@@ -62,13 +62,13 @@
 
 (should-equal
   "parse a multi-line text-only tweet properly"
-  ; note that the [LF LF] turns into [SP SP]
-  "the first.  the second."
+  ; note that the [LF LF] turns into [SP SP SP SP]
+  "the first.    the second."
   (tw "double"))
 
 (should-equal
   "expand lisp code into image media references"
-  "here's some lisp: <t/tmp/lisp1.png>"
+  "here's some lisp:  <t/tmp/lisp1.png>"
   (tw "lisp1"))
 
 (should-equal
@@ -135,5 +135,15 @@
 
 2/2"))
   (storm (tw "media2")))
+
+(should-equal
+  "treat double-spaces as single spaces, and double newlines as breaks"
+  (list (make-tweet "James likes to use two spaces between sentences. Let's let him do that.
+
+1/2")
+        (make-tweet "It's also okay to split across multiple lines.
+
+2/2"))
+  (storm (tw "spacing")))
 
 (done-testing)

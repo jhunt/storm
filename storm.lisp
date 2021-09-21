@@ -97,22 +97,23 @@
   (setf chirp:*oauth-access-token*  (setting 'access-token))
   (setf chirp:*oauth-access-secret* (setting 'access-secret)))
 
-(defun cull/cdr (lst)
-  "culls returns the first cdr of lst that doesn't start with nil"
+(defun cull (lst &optional (to-cull nil))
   (cond ((null lst) nil)
-        ((null (car lst))
-         (cull/cdr (cdr lst)))
+        ((eq (car lst) to-cull)
+         (cull (cdr lst) to-cull))
         (t lst)))
 
-(defun cull (lst)
-  "culls nil values from a list, replacing contiguous runs of more than one nil with a single nil"
+(defun expand-breaks (lst)
   (cond ((null lst) nil)
-        ((null (car lst))
-         (cons nil
-               (cull (cull/cdr lst))))
+        ((and (> (length lst) 2)
+              (null (car lst))
+              (null (cadr lst))
+              (null (caddr lst)))
+         (cons 'break
+               (expand-breaks (cull (cdddr lst)))))
         (t
          (cons (car lst)
-               (cull (cdr lst))))))
+               (expand-breaks (cdr lst))))))
 
 (defun drop-empty (w)
   "returns w, unless w is the empty string, in which case it returns nil"
@@ -161,7 +162,7 @@
 
 (defun parse-input (path images)
   (let ((lines (read-file-as-lines path)))
-    (format nil "~{~A~^ ~}"
+    (format nil "~{~A~^  ~}"
             (expand-input lines images))))
 
 (defun watch (dir images handler)
@@ -177,9 +178,10 @@
 
 (defun disassemble-tweet (full)
   "parse a string into a list of space-separated words, suitable for re-assembling into tweets"
-  (cull
-    (mapcar #'drop-empty
-            (split-sequence #\Space full))))
+  (remove nil
+    (expand-breaks
+      (mapcar #'drop-empty
+              (split-sequence #\Space full)))))
 
 (defun media-reference? (s)
   "determines if a string word is a reference to media that should be uploaded to Twitter"
@@ -192,13 +194,13 @@
 (defun fit-tweet (candidate words)
   "try to fit all of the words into a single tweet, using candidate as a starting list"
   (cond ((null words) (build-tweet (reverse candidate)))
-        ((null (car words))
+        ((eq 'break (car words))
          (values (build-tweet (reverse candidate))
                  (cdr words)))
         ((media-reference? (car words))
          (values (build-tweet (reverse candidate)
                                  (media-reference (car words)))
-                 (cull/cdr (cdr words))))
+                 (cull (cdr words) 'break)))
         ((tweet-too-long? (build-tweet (cons (car words) candidate)))
          (values (build-tweet (reverse candidate))
                  words))
