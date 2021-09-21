@@ -66,10 +66,10 @@
   "the first.  the second."
   (tw "double"))
 
-;(should-equal
-;  "treat a single tweet as an unthreaded 'storm'"
-;  `(("just setting up my twttr"))
-;  (storm (tw "single")))
+(should-equal
+  "expand lisp code into image media references"
+  "here's some lisp: <t/tmp/lisp1.png>"
+  (tw "lisp1"))
 
 (should-equal
   "properly disassemble tweets"
@@ -88,6 +88,11 @@
   (let ((*tweet-length* 17))
     (fit-tweets nil `("the" "first" "tweet"
                       "the" "second" "tweet"))))
+
+(should-equal
+  "treat a single tweet as an unthreaded 'storm'"
+  (list (make-tweet "just setting up my twttr"))
+  (storm (tw "single")))
 
 (should-equal
   "handle particularly long tweets"
