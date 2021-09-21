@@ -264,8 +264,8 @@
   "tweet out text, as a tweet storm, at the given wpm typing speed"
   (let ((prev-status nil))
     (loop for the-tweet in (storm text)
-          do (let* ((status  (car the-tweet))
-                    (media   (cdr the-tweet))
+          do (let* ((status  (tweet-text  the-tweet))
+                    (media   (tweet-media the-tweet))
                     (naptime (seconds-to-type wpm status)))
                (nap naptime)
                (setf prev-status
