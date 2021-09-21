@@ -1,5 +1,10 @@
 IMAGE ?= iamjameshunt/storm:latest
 
+PROVE := prove -v --exec 'sbcl --noinform --load $(HOME)/quicklisp/setup.lisp --script'
+
+test:
+	$(PROVE) t/*.lisp
+
 build:
 	docker build -t storm .
 

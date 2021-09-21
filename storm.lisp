@@ -3,6 +3,43 @@
 (use-package :cl-utilities)
 (load "image.lisp")
 
+;; tweets are represented by a single cons cell,
+;; with the car populated with the tweet text and
+;; the cdr populated with the media to attach
+
+(defun make-tweet (text &optional media)
+  "build a tweet object"
+  (cons text media))
+
+(defun build-tweet (words &optional media)
+  (make-tweet
+    (format nil "~{~A~^ ~}" words)
+    media))
+
+(defun is-tweet (tweet)
+  (and (consp tweet)
+       (stringp (car tweet))
+       (or (null (cdr tweet))
+           (pathnamep (cdr tweet)))))
+
+(defun tweet-text (tweet)
+  (car tweet))
+
+(defun tweet-length (tweet)
+  (length (tweet-text tweet)))
+
+(defparameter *tweet-length* 280)
+(defun tweet-too-long? (tweet &optional (max-len *tweet-length*))
+  (or (> (tweet-length tweet) max-len)
+      nil))
+
+
+(defun tweet-media (tweet)
+  (cdr tweet))
+
+(defun tweet-has-media? (tweet)
+  (not (null (tweet-media tweet))))
+
 (defparameter *wpm* 10)
 
 (defparameter *stat* (make-hash-table :test 'eq))
@@ -87,6 +124,12 @@
   "find and return list of pathnames of files that contain tweets"
   (directory (format nil "~A/*.tweet" in-dir)))
 
+(defun read-file-as-lines (path)
+  (with-open-file (in path)
+    (loop for line = (read-line in nil)
+          while line
+          collect line)))
+
 (defparameter *lisp-n* 1)
 (defun stow-image (dir text)
   (let ((path (format nil "~A/lisp~D.png" dir *lisp-n*))
@@ -94,37 +137,32 @@
     (incf *lisp-n*)
     (image::lispify path text :font font)
     path))
-(defun process-lisp-listing (lines images &optional acc)
+
+(defun expand-lisp-code (lines images &optional acc)
   (cond ((null lines)
          (values nil nil))
        ((equal (car lines) "---")
          (values (reverse acc)
                  (cdr lines)))
         (t
-         (process-lisp-listing (cdr lines)
-                               images
-                               (cons (car lines) acc)))))
-(defun process-raw-tweet (lines images)
-  (format t "~{|~A|~%~}" lines)
+         (expand-lisp-code (cdr lines)
+                           images
+                           (cons (car lines) acc)))))
+
+(defun expand-input (lines images)
   (cond ((null lines) nil)
         ((equal (car lines) "---(lisp)")
          (multiple-value-bind (img rest-of-tweet)
-           (process-lisp-listing (cdr lines) images)
+           (expand-lisp-code (cdr lines) images)
            (cons (format nil "<~A>" (stow-image images img))
-                 (process-raw-tweet rest-of-tweet images))))
+                 (expand-input rest-of-tweet images))))
         (t (cons (car lines)
-                 (process-raw-tweet (cdr lines) images)))))
+                 (expand-input (cdr lines) images)))))
 
-(defun read-file-as-lines (path)
-  (with-open-file (in path)
-    (loop for line = (read-line in nil)
-          while line
-          collect line)))
-
-(defun parse-tweet (path images)
+(defun parse-input (path images)
   (let ((lines (read-file-as-lines path)))
     (format nil "~{~A~^ ~}"
-            (process-raw-tweet lines images))))
+            (expand-input lines images))))
 
 (defun watch (dir images handler)
   "watch a directory for tweet files, and fire handler for each such file found"
@@ -133,7 +171,7 @@
     (loop for file in (tweet-files dir)
           do
           (progn
-            (apply handler (list file (parse-tweet file images)))
+            (apply handler (list file (parse-input file images)))
             (delete-file file)))))
 
 
@@ -142,17 +180,6 @@
   (cull
     (mapcar #'drop-empty
             (split-sequence #\Space full))))
-
-(defun assemble-tweet (words &optional image)
-  "assemble a list of words and an optional media (or media list) into a tweet cons"
-  (cons (format nil "~{~A~^ ~}" words)
-        image))
-
-(defvar *tweet-length* 280)
-(defun tweet-too-long? (tweet)
-  "determines if a string is too long to tweet, according to *tweet-length*"
-  (or (> (length tweet) *tweet-length*)
-      nil))
 
 (defun media-reference? (s)
   "determines if a string word is a reference to media that should be uploaded to Twitter"
@@ -164,16 +191,16 @@
 
 (defun fit-tweet (candidate words)
   "try to fit all of the words into a single tweet, using candidate as a starting list"
-  (cond ((null words) (assemble-tweet (reverse candidate)))
+  (cond ((null words) (build-tweet (reverse candidate)))
         ((null (car words))
-         (values (assemble-tweet (reverse candidate))
+         (values (build-tweet (reverse candidate))
                  (cdr words)))
         ((media-reference? (car words))
-         (values (assemble-tweet (reverse candidate)
+         (values (build-tweet (reverse candidate)
                                  (media-reference (car words)))
-                 (cdr words)))
-        ((tweet-too-long? (assemble-tweet (cons (car words) candidate)))
-         (values (assemble-tweet (reverse candidate))
+                 (cull/cdr (cdr words))))
+        ((tweet-too-long? (build-tweet (cons (car words) candidate)))
+         (values (build-tweet (reverse candidate))
                  words))
         (t (fit-tweet (cons (car words) candidate)
                             (cdr words)))))
