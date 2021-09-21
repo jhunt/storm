@@ -131,6 +131,41 @@ From then on (assuming the `/etc/storm` directory persists across
 container restarts) everything should **Just Work**(TM).
 
 
+Authoring Tweetstorms
+---------------------
+
+Storm aims to make it easier to write tweet storms.  The easiest
+way is to just put your thoughts into a file, like this:
+
+```text
+Isn't this a fascinatingly long tweet?  It's kind of a thread.  I
+can ramble online all day like this.  It's like blogging, but not
+nearly as difficult!  No messing about with HTML, or blog engines,
+or databases!
+```
+
+If you don't want Storm to pack your text that compactly, just put
+in new lines.  Each contiguous run of three or more white space
+characters will cause Storm to break the tweet it's building and
+start a new one.
+
+Like this:
+
+```text
+Wondered about this random thing I know a lot about? A thread.
+
+Welcome to the second tweet in my thread...
+```
+
+If you want to embed image media in your tweets, just enclose the
+path to the image (relative to the working directory of the storm
+process, or absolute for good measure) in angle brackets:
+
+```text
+Here's a picture of all my useless old computing junk: <junk.png>
+```
+
+
 Fun Things You Can Do In The REPL
 ---------------------------------
 
